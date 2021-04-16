@@ -1,184 +1,184 @@
 (function() {
-  var module = angular.module("fa.directive.borderLayout", []);
+  var module = angular.module('fa.directive.borderLayout', [])
 
-  var faDragged = false; // Fix dragging on toggle
+  var faDragged = false // Fix dragging on toggle
 
-  module.factory("paneManager", function() {
+  module.factory('paneManager', function() {
     return {
       panes: {},
       get: function(paneId) {
-        return this.panes[paneId];
+        return this.panes[paneId]
       },
       set: function(paneId, pane) {
-        return this.panes[paneId] = pane;
+        return this.panes[paneId] = pane
       },
       remove: function(paneId) {
-        return delete this.panes[paneId];
+        return delete this.panes[paneId]
       }
-    };
-  });
+    }
+  })
 
-  module.directive("faPane", [
-    "$window", "$rootScope", "paneManager", function($window, $rootScope, paneManager) {
+  module.directive('faPane', [
+    '$window', '$rootScope', 'paneManager', function($window, $rootScope, paneManager) {
 
       var Region = (function() {
         function Region(width, height, top, right, bottom, left) {
-          this.width = width != null ? width : 0;
-          this.height = height != null ? height : 0;
-          this.top = top != null ? top : 0;
-          this.right = right != null ? right : 0;
-          this.bottom = bottom != null ? bottom : 0;
-          this.left = left != null ? left : 0;
+          this.width = width != null ? width : 0
+          this.height = height != null ? height : 0
+          this.top = top != null ? top : 0
+          this.right = right != null ? right : 0
+          this.bottom = bottom != null ? bottom : 0
+          this.left = left != null ? left : 0
         }
 
         Region.prototype.clone = function() {
-          return new Region(this.width, this.height, this.top, this.right, this.bottom, this.left);
-        };
+          return new Region(this.width, this.height, this.top, this.right, this.bottom, this.left)
+        }
 
         Region.prototype.calculateSize = function(orientation, target) {
-          var matches, terms;
+          var matches, terms
 
           if (target == null) {
-            target = 0;
+            target = 0
           }
 
-          var total = this.getSize(orientation);
-          var available = this.getAvailableSize(orientation);
+          var total = this.getSize(orientation)
+          var available = this.getAvailableSize(orientation)
 
           if (angular.isNumber(target)) {
             if (target >= 1) {
-              return Math.round(target);
+              return Math.round(target)
             }
             if (target >= 0) {
-              return Math.round(target * total);
+              return Math.round(target * total)
             }
-            return 0;
+            return 0
           }
 
           // Kill whitespace
-          target = target.replace(/\s+/mg, "");
+          target = target.replace(/\s+/mg, '')
 
           // Allow for complex sizes, e.g.: 50% - 4px
-          if ((terms = target.split("-")).length > 1) {
-            return this.calculateSize(orientation, terms.shift()) - this.calculateSize(orientation, terms.join("+"));
+          if ((terms = target.split('-')).length > 1) {
+            return this.calculateSize(orientation, terms.shift()) - this.calculateSize(orientation, terms.join('+'))
           }
-          if ((terms = target.split("+")).length > 1) {
-            return this.calculateSize(orientation, terms.shift()) + this.calculateSize(orientation, terms.join("+"));
+          if ((terms = target.split('+')).length > 1) {
+            return this.calculateSize(orientation, terms.shift()) + this.calculateSize(orientation, terms.join('+'))
           }
 
           if (matches = target.match(/^(\d+)(?:px)?$/)) {
-            return parseInt(matches[1], 10);
+            return parseInt(matches[1], 10)
           }
           if (matches = target.match(/^(\d+(?:\.\d+)?)&$/)) {
-            return Math.round(available * parseFloat(matches[1]) / 100);
+            return Math.round(available * parseFloat(matches[1]) / 100)
           }
           if (matches = target.match(/^(\d+(?:\.\d+)?)%$/)) {
-            return Math.round(total * parseFloat(matches[1]) / 100);
+            return Math.round(total * parseFloat(matches[1]) / 100)
           }
 
-          throw new Error("Unsupported size: " + target);
-        };
+          throw new Error('Unsupported size: ' + target)
+        }
 
         Region.prototype.consume = function(anchor, size) {
-          var style;
+          var style
 
           if (size == null) {
-            size = 0;
+            size = 0
           }
 
           switch (anchor) {
-            case "north":
+            case 'north':
               style = {
-                top: "" + this.top + "px",
-                right: "" + this.right + "px",
-                bottom: "auto",
-                left: "" + this.left + "px",
-                height: "" + size + "px",
-                width: "auto"
-              };
-              this.top += size;
-              break;
-            case "east":
+                top: '' + this.top + 'px',
+                right: '' + this.right + 'px',
+                bottom: 'auto',
+                left: '' + this.left + 'px',
+                height: '' + size + 'px',
+                width: 'auto'
+              }
+              this.top += size
+              break
+            case 'east':
               style = {
-                top: "" + this.top + "px",
-                right: "" + this.right + "px",
-                bottom: "" + this.bottom + "px",
-                left: "auto",
-                width: "" + size + "px",
-                height: "auto"
-              };
-              this.right += size;
-              break;
-            case "south":
+                top: '' + this.top + 'px',
+                right: '' + this.right + 'px',
+                bottom: '' + this.bottom + 'px',
+                left: 'auto',
+                width: '' + size + 'px',
+                height: 'auto'
+              }
+              this.right += size
+              break
+            case 'south':
               style = {
-                top: "auto",
-                right: "" + this.right + "px",
-                bottom: "" + this.bottom + "px",
-                left: "" + this.left + "px",
-                height: "" + size + "px",
-                width: "auto"
-              };
-              this.bottom += size;
-              break;
-            case "west":
+                top: 'auto',
+                right: '' + this.right + 'px',
+                bottom: '' + this.bottom + 'px',
+                left: '' + this.left + 'px',
+                height: '' + size + 'px',
+                width: 'auto'
+              }
+              this.bottom += size
+              break
+            case 'west':
               style = {
-                top: "" + this.top + "px",
-                right: "auto",
-                bottom: "" + this.bottom + "px",
-                left: "" + this.left + "px",
-                width: "" + size + "px",
-                height: "auto"
-              };
-              this.left += size;
+                top: '' + this.top + 'px',
+                right: 'auto',
+                bottom: '' + this.bottom + 'px',
+                left: '' + this.left + 'px',
+                width: '' + size + 'px',
+                height: 'auto'
+              }
+              this.left += size
           }
 
           if (size === 0) {
-            style.display = "none";
+            style.display = 'none'
           }
 
-          return style;
-        };
+          return style
+        }
 
         Region.prototype.getInnerRegion = function() {
-          return new Region(this.width - this.right - this.left, this.height - this.top - this.bottom);
-        };
+          return new Region(this.width - this.right - this.left, this.height - this.top - this.bottom)
+        }
 
         Region.prototype.getSize = function(orientation) {
           switch (orientation) {
-            case "vertical":
-              return this.height;
-            case "horizontal":
-              return this.width;
+            case 'vertical':
+              return this.height
+            case 'horizontal':
+              return this.width
           }
-        };
+        }
 
         Region.prototype.getAvailableSize = function(orientation) {
           switch (orientation) {
-            case "vertical":
-              return this.height - this.top - this.bottom;
-            case "horizontal":
-              return this.width - this.right - this.left;
+            case 'vertical':
+              return this.height - this.top - this.bottom
+            case 'horizontal':
+              return this.width - this.right - this.left
           }
-        };
+        }
 
         Region.prototype.toString = function() {
-          return "{" + this.top + ", " + this.right + ", " + this.bottom + ", " +
-            this.left + "}, {" + this.width + ", " + this.height + "}";
-        };
+          return '{' + this.top + ', ' + this.right + ', ' + this.bottom + ', ' +
+            this.left + '}, {' + this.width + ', ' + this.height + '}'
+        }
 
-        return Region;
-      })();
+        return Region
+      })()
 
       var getOrientation = function(anchor) {
         switch (anchor) {
-          case "north":
-          case "south":
-            return "vertical";
-          case "east":
-          case "west":
-            return "horizontal";
+          case 'north':
+          case 'south':
+            return 'vertical'
+          case 'east':
+          case 'west':
+            return 'horizontal'
         }
-      };
+      }
 
       var getScrollerStyle = function(anchor, size) {
         var style = {
@@ -186,106 +186,106 @@
           right: 0,
           bottom: 0,
           left: 0
-        };
+        }
 
         if (size) {
           switch (anchor) {
-            case "north":
-              style.bottom = "auto";
-              style.height = "" + size + "px";
-              break;
-            case "east":
-              style.left = "auto";
-              style.width = "" + size + "px";
-              break;
-            case "south":
-              style.top = "auto";
-              style.height = "" + size + "px";
-              break;
-            case "west":
-              style.right = "auto";
-              style.width = "" + size + "px";
+            case 'north':
+              style.bottom = 'auto'
+              style.height = '' + size + 'px'
+              break
+            case 'east':
+              style.left = 'auto'
+              style.width = '' + size + 'px'
+              break
+            case 'south':
+              style.top = 'auto'
+              style.height = '' + size + 'px'
+              break
+            case 'west':
+              style.right = 'auto'
+              style.width = '' + size + 'px'
           }
         }
 
-        return style;
-      };
+        return style
+      }
 
       var getHandleStyle = function(anchor, region, handleSize) {
         switch (anchor) {
-          case "north":
+          case 'north':
             return {
-              height: region.calculateSize('vertical', handleSize) + "px",
+              height: region.calculateSize('vertical', handleSize) + 'px',
               right: 0,
               left: 0,
               bottom: 0
-            };
-          case "south":
+            }
+          case 'south':
             return {
-              height: region.calculateSize('vertical', handleSize) + "px",
+              height: region.calculateSize('vertical', handleSize) + 'px',
               right: 0,
               left: 0,
               top: 0
-            };
-          case "east":
+            }
+          case 'east':
             return {
-              width: region.calculateSize('horizontal', handleSize) + "px",
+              width: region.calculateSize('horizontal', handleSize) + 'px',
               top: 0,
               bottom: 0,
               left: 0
-            };
-          case "west":
+            }
+          case 'west':
             return {
-              width: region.calculateSize('horizontal', handleSize) + "px",
+              width: region.calculateSize('horizontal', handleSize) + 'px',
               top: 0,
               bottom: 0,
               right: 0
-            };
+            }
         }
-      };
+      }
 
       var generateSerialId = (function() {
-        var counter = 0;
+        var counter = 0
 
         var fun = function() {
-          return counter++;
-        };
+          return counter++
+        }
 
         fun.peek = function() {
-          return counter;
-        };
+          return counter
+        }
 
-        return fun;
-      })();
+        return fun
+      })()
 
       // BEGIN DIRECTIVE DECLARATION
       return {
-        restrict: "A",
+        restrict: 'A',
         replace: true,
-        require: "faPane",
+        require: 'faPane',
         priority: 1,
-        transclude: "element",
+        transclude: 'element',
         scope: {
-          anchor: "@paneAnchor",
-          paneId: "@faPane",
-          size: "@paneSize",
-          min: "@paneMin",
-          max: "@paneMax",
-          handle: "@paneHandle",
-          closed: "=paneClosed",
-          order: "@paneOrder",
-          noToggle: "@paneNoToggle"
+          anchor: '@paneAnchor',
+          paneId: '@faPane',
+          size: '@paneSize',
+          min: '@paneMin',
+          max: '@paneMax',
+          handle: '@paneHandle',
+          closed: '=paneClosed',
+          order: '@paneOrder',
+          noToggle: '@paneNoToggle'
         },
         template:
           '<div class="fa-pane pane-{{$pane.id}}">' +
-            '<div class="fa-pane-overlay"></div>' +
-            '<div class="fa-pane-handle" fa-pane-resizer>' +
-              '<div ng-if="!$pane.noToggle" class="fa-pane-toggle" ng-click="$pane.toggle()"></div>' +
-            '</div>' +
+          '<div class="fa-pane-overlay"></div>' +
+          '<div class="fa-pane-handle" fa-pane-resizer>' +
+          '<div ng-if="!$pane.noToggle" class="fa-pane-toggle" ng-click="$pane.toggle()"></div>' +
+          '</div>' +
           '</div>',
-        controllerAs: "$pane",
+        controllerAs: '$pane',
         controller: function() {
-          var $pane = this;
+          var $pane = this
 
           return angular.extend(this, {
             children: [],
@@ -297,31 +297,34 @@
             // more than necessary
             $scheduleReflow: function() {
               if ($pane.parent) {
-                return $pane.parent.$scheduleReflow();
-              } else if (!$pane.$reflowScheduled) {
-                $pane.$reflowScheduled = true;
+                return $pane.parent.$scheduleReflow()
+              }
+              else if (!$pane.$reflowScheduled) {
+                $pane.$reflowScheduled = true
 
                 return $rootScope.$evalAsync(function() {
                   if ($pane.$reflowScheduled) {
-                    $pane.reflow();
+                    $pane.reflow()
                   }
 
-                  return $pane.$reflowScheduled = false;
-                });
+                  return $pane.$reflowScheduled = false
+                })
               }
             },
             $onStartResize: function() {
               if ($pane.$parent) {
-                return $pane.parent.$containerEl.addClass("fa-pane-resizing");
-              } else {
-                return $pane.$containerEl.addClass("fa-pane-resizing");
+                return $pane.parent.$containerEl.addClass('fa-pane-resizing')
+              }
+              else {
+                return $pane.$containerEl.addClass('fa-pane-resizing')
               }
             },
             $onStopResize: function() {
               if ($pane.$parent) {
-                return $pane.parent.$containerEl.removeClass("fa-pane-resizing");
-              } else {
-                return $pane.$containerEl.removeClass("fa-pane-resizing");
+                return $pane.parent.$containerEl.removeClass('fa-pane-resizing')
+              }
+              else {
+                return $pane.$containerEl.removeClass('fa-pane-resizing')
               }
             },
             getOptions: function() {
@@ -338,503 +341,530 @@
                 },
                 noToggle: !!this.noToggle,
                 closed: this.closed
-              };
+              }
             },
             setOptions: function(options) {
               if (options == null) {
-                options = {};
+                options = {}
               }
               if (options.anchor != null) {
-                this.setAnchor(options.anchor);
+                this.setAnchor(options.anchor)
               }
               if (options.size != null) {
-                this.setTargetSize(options.size);
+                this.setTargetSize(options.size)
               }
               if (options.min != null) {
-                this.setMinSize(options.min);
+                this.setMinSize(options.min)
               }
               if (options.max != null) {
-                this.setMaxSize(options.max);
+                this.setMaxSize(options.max)
               }
               if (options.handle != null) {
-                this.setHandleSize(options.handle);
+                this.setHandleSize(options.handle)
               }
               if (options.order != null) {
-                this.setOrder(options.order);
+                this.setOrder(options.order)
               }
               if (options.noToggle != null) {
-                this.setNoToggle(options.noToggle);
+                this.setNoToggle(options.noToggle)
               }
               if (options.closed != null) {
-                return this.toggle(!options.closed);
+                return this.toggle(!options.closed)
               }
             },
             setAnchor: function(anchor) {
-              this.anchor = anchor;
+              this.anchor = anchor
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setTargetSize: function(targetSize) {
-              this.targetSize = targetSize;
+              this.targetSize = targetSize
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setMinSize: function(min) {
-              this.min = min;
+              this.min = min
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setMaxSize: function(max) {
-              this.max = max;
+              this.max = max
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setOrder: function(order) {
-              this.order = order;
+              this.order = order
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setNoToggle: function(noToggle) {
-              this.noToggle = noToggle;
+              this.noToggle = noToggle
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             setHandleSize: function(handleSize) {
               if ((handleSize != null ? handleSize.open : void 0) ||
                 (handleSize != null ? handleSize.closed : void 0)) {
 
-                this.handleSizeOpen = parseInt(handleSize.open, 10) || 0;
-                this.handleSizeClosed = parseInt(handleSize.closed, 10) || 0;
-              } else {
-                this.handleSizeOpen = this.handleSizeClosed = parseInt(handleSize, 10);
+                this.handleSizeOpen = parseInt(handleSize.open, 10) || 0
+                this.handleSizeClosed = parseInt(handleSize.closed, 10) || 0
+              }
+              else {
+                this.handleSizeOpen = this.handleSizeClosed = parseInt(handleSize, 10)
               }
 
-              return this.$scheduleReflow();
+              return this.$scheduleReflow()
             },
             addChild: function(child) {
-              child.parent = $pane;
-              this.children.push(child);
+              child.parent = $pane
+              this.children.push(child)
 
               if (this.children.length) {
-                $pane.$containerEl.addClass("fa-pane-parent");
+                $pane.$containerEl.addClass('fa-pane-parent')
               }
 
-              return $pane.$scheduleReflow();
+              return $pane.$scheduleReflow()
             },
             getOrientation: function() {
-              return getOrientation($pane.anchor);
+              return getOrientation($pane.anchor)
             },
             onHandleDown: function() {
-              return $pane.$containerEl.addClass("active");
+              return $pane.$containerEl.addClass('active')
             },
             onHandleUp: function() {
-              $pane.$containerEl.removeClass("active");
+              $pane.$containerEl.removeClass('active')
 
-              return $pane.$scheduleReflow();
+              return $pane.$scheduleReflow()
             },
             removeChild: function(child) {
-              var idx;
+              var idx
 
               if (!(0 > (idx = this.children.indexOf(child)))) {
-                this.children.splice(idx, 1);
+                this.children.splice(idx, 1)
               }
 
               if (!this.children.length) {
-                $pane.$containerEl.removeClass("fa-pane-parent");
+                $pane.$containerEl.removeClass('fa-pane-parent')
               }
 
-              return $pane.$scheduleReflow();
+              return $pane.$scheduleReflow()
             },
             reflow: function(region) {
-              var width = $pane.$containerEl[0].offsetWidth;
-              var height = $pane.$containerEl[0].offsetHeight;
+              var width = $pane.$containerEl[0].offsetWidth
+              var height = $pane.$containerEl[0].offsetHeight
 
-              region || (region = new Region(width, height));
+              region || (region = new Region(width, height))
 
-              var _ref = $pane.anchor;
-              if (_ref === "north" || _ref === "east" || _ref === "south" || _ref === "west") {
+              var _ref = $pane.anchor
+              if (_ref === 'north' || _ref === 'east' || _ref === 'south' || _ref === 'west') {
 
-                $pane.$containerEl.removeClass("fa-pane-orientation-vertical");
-                $pane.$containerEl.removeClass("fa-pane-orientation-horizontal");
+                $pane.$containerEl.removeClass('fa-pane-orientation-vertical')
+                $pane.$containerEl.removeClass('fa-pane-orientation-horizontal')
 
-                var orientation = getOrientation($pane.anchor);
+                var orientation = getOrientation($pane.anchor)
 
-                $pane.$containerEl.addClass("fa-pane-orientation-" + orientation);
+                $pane.$containerEl.addClass('fa-pane-orientation-' + orientation)
 
                 var handleSize = region.calculateSize(orientation, !$pane.closed &&
-                $pane.handleSizeOpen || $pane.handleSizeClosed);
+                  $pane.handleSizeOpen || $pane.handleSizeClosed)
 
-                var size = handleSize;
+                var size = handleSize
                 if (!$pane.closed) {
-                  size = region.calculateSize(orientation, !$pane.closed && $pane.targetSize || handleSize);
+                  size = region.calculateSize(orientation, !$pane.closed && $pane.targetSize || handleSize)
 
-                  size = Math.min(size, region.calculateSize(orientation, $pane.max));
-                  size = Math.max(size, region.calculateSize(orientation, $pane.min));
-                  size = Math.min(size, region.getAvailableSize(orientation));
-                  size = Math.max(size, handleSize);
+                  size = Math.min(size, region.calculateSize(orientation, $pane.max))
+                  size = Math.max(size, region.calculateSize(orientation, $pane.min))
+                  size = Math.min(size, region.getAvailableSize(orientation))
+                  size = Math.max(size, handleSize)
                 }
 
-                this.size = size;
+                this.size = size
 
-                var styleContainer = region.consume($pane.anchor, size);
-                var styleScroller = getScrollerStyle($pane.anchor, size - handleSize);
-                var styleHandle = getHandleStyle($pane.anchor, region, handleSize);
+                var styleContainer = region.consume($pane.anchor, size)
+                var styleScroller = getScrollerStyle($pane.anchor, size - handleSize)
+                var styleHandle = getHandleStyle($pane.anchor, region, handleSize)
 
-                $pane.$containerEl.attr("style", "").css(styleContainer);
-                $pane.$overlayEl.attr("style", "").css(styleScroller);
-                $pane.$handleEl.attr("style", "").css(styleHandle);
-                $pane.$scrollerEl.attr("style", "").css(styleScroller);
+                $pane.$containerEl.attr('style', '').css(styleContainer)
+                $pane.$overlayEl.attr('style', '').css(styleScroller)
+                $pane.$handleEl.attr('style', '').css(styleHandle)
+                $pane.$scrollerEl.attr('style', '').css(styleScroller)
 
-              } else {
+              }
+              else {
                 $pane.$containerEl.css({
-                  top: region.top + "px",
-                  right: region.right + "px",
-                  bottom: region.bottom + "px",
-                  left: region.left + "px",
-                  width: "auto",
-                  height: "auto"
-                });
+                  top: region.top + 'px',
+                  right: region.right + 'px',
+                  bottom: region.bottom + 'px',
+                  left: region.left + 'px',
+                  width: 'auto',
+                  height: 'auto'
+                })
               }
 
-              $pane.$region = region.clone();
-              $pane.reflowChildren(region.getInnerRegion());
+              $pane.$region = region.clone()
+              $pane.reflowChildren(region.getInnerRegion())
 
-              $rootScope.$broadcast("fa-pane-resize", $pane);
+              $rootScope.$broadcast('fa-pane-resize', $pane)
             },
             reflowChildren: function(region) {
-              region || (region = $pane.$region);
+              region || (region = $pane.$region)
 
               $pane.children.sort(function(a, b) {
-                return a.order - b.order;
-              });
+                return a.order - b.order
+              })
 
-              var results = [];
+              var results = []
 
               for (var i = 0; i < $pane.children.length; i++) {
-                var child = $pane.children[i];
-                results.push(child.reflow(region));
+                var child = $pane.children[i]
+                results.push(child.reflow(region))
               }
 
-              return results;
+              return results
             },
             resize: function(size) {
               if (size == null) {
-                size = $pane.targetSize;
+                size = $pane.targetSize
               }
 
-              $pane.targetSize = size;
-              $pane.parent.reflowChildren($pane.parent.$region.getInnerRegion());
+              $pane.targetSize = size
+              $pane.parent.reflowChildren($pane.parent.$region.getInnerRegion())
 
               if (size !== $pane.size) {
-                return $pane.$containerEl.addClass("fa-pane-constrained");
-              } else {
-                return $pane.$containerEl.removeClass("fa-pane-constrained");
+                return $pane.$containerEl.addClass('fa-pane-constrained')
+              }
+              else {
+                return $pane.$containerEl.removeClass('fa-pane-constrained')
               }
             },
             toggle: function(open) {
               // Fix for dragging on toggle
               if (faDragged) {
-                faDragged = false;
-                return $pane;
+                faDragged = false
+                return $pane
               }
 
               if (open == null) {
-                open = !!$pane.closed;
+                open = !!$pane.closed
               }
 
-              $pane.closed = !open;
+              $pane.closed = !open
 
               var reflow = function() {
                 if ($pane.parent) {
-                  return $pane.parent.$scheduleReflow();
-                } else {
-                  return $pane.$scheduleReflow();
+                  return $pane.parent.$scheduleReflow()
                 }
-              };
-
-              if ($pane.closed) {
-                $pane.$containerEl.addClass("fa-pane-closed");
-              } else {
-                $pane.$containerEl.removeClass("fa-pane-closed");
+                else {
+                  return $pane.$scheduleReflow()
+                }
               }
 
-              return reflow();
+              if ($pane.closed) {
+                $pane.$containerEl.addClass('fa-pane-closed')
+              }
+              else {
+                $pane.$containerEl.removeClass('fa-pane-closed')
+              }
+
+              return reflow()
             }
-          });
+          })
         },
         compile: function($el, $attrs, $transclude) {
           // Tool used to force elements into their compile order
-          var serialId = generateSerialId();
+          var serialId = generateSerialId()
 
           return function($scope, $el, $attrs, $pane) {
-            var $directiveScope = $scope.$parent.$new();
-            $directiveScope.$pane = $scope.$pane = $pane;
+            var $directiveScope = $scope.$parent.$new()
+            $directiveScope.$pane = $scope.$pane = $pane
 
-            var $transcludeScope = $directiveScope.$new();
+            var $transcludeScope = $directiveScope.$new()
 
             if ($pane.order == null) {
-              $pane.order = serialId;
+              $pane.order = serialId
             }
 
-            $pane.id = $attrs.faPane;
+            $pane.id = $attrs.faPane
 
-            $pane.$isolateScope = $scope;
-            $pane.$directiveScope = $directiveScope;
-            $pane.$transcludeScope = $transcludeScope;
+            $pane.$isolateScope = $scope
+            $pane.$directiveScope = $directiveScope
+            $pane.$transcludeScope = $transcludeScope
 
             return $transclude($transcludeScope, function(clone) {
-              clone.addClass("fa-pane-scroller");
+              clone.addClass('fa-pane-scroller')
 
-              $el.append(clone);
+              $el.append(clone)
 
-              $pane.$containerEl = $el;
-              $pane.$overlayEl = $el.children().eq(0);
-              $pane.$handleEl = $el.children().eq(1);
-              $pane.$scrollerEl = $el.children().eq(2);
+              $pane.$containerEl = $el
+              $pane.$overlayEl = $el.children().eq(0)
+              $pane.$handleEl = $el.children().eq(1)
+              $pane.$scrollerEl = $el.children().eq(2)
 
-              $scope.$watch("anchor", function(anchor) {
-                return $pane.setAnchor(anchor);
-              });
+              $scope.$watch('anchor', function(anchor) {
+                return $pane.setAnchor(anchor)
+              })
 
-              $scope.$watch("size", function(targetSize) {
-                return $pane.setTargetSize(targetSize);
-              });
+              $scope.$watch('size', function(targetSize) {
+                return $pane.setTargetSize(targetSize)
+              })
 
-              $scope.$watch("closed", function(closed) {
-                return $pane.toggle(!closed);
-              });
+              $scope.$watch('closed', function(closed) {
+                return $pane.toggle(!closed)
+              })
 
-              $scope.$watch("min", function(min) {
-                return $pane.setMinSize(min != null ? min : 0);
-              });
+              $scope.$watch('min', function(min) {
+                return $pane.setMinSize(min != null ? min : 0)
+              })
 
-              $scope.$watch("max", function(max) {
-                return $pane.setMaxSize(max != null ? max : Number.MAX_VALUE);
-              });
+              $scope.$watch('max', function(max) {
+                return $pane.setMaxSize(max != null ? max : Number.MAX_VALUE)
+              })
 
-              $scope.$watch("order", function(order) {
-                return $pane.setOrder(order);
-              });
+              $scope.$watch('order', function(order) {
+                return $pane.setOrder(order)
+              })
 
-              $scope.$watch("noToggle", function(noToggle) {
-                return $pane.setNoToggle(!!noToggle);
-              });
+              $scope.$watch('noToggle', function(noToggle) {
+                return $pane.setNoToggle(!!noToggle)
+              })
 
-              $scope.$watch("paneId", function(paneId, prevPaneId) {
+              $scope.$watch('paneId', function(paneId, prevPaneId) {
                 if (prevPaneId) {
-                  paneManager.remove(prevPaneId);
+                  paneManager.remove(prevPaneId)
                 }
 
-                paneManager.set(paneId, $pane);
+                paneManager.set(paneId, $pane)
 
-                return $pane.id = paneId;
-              });
+                return $pane.id = paneId
+              })
 
-              $scope.$watch("handle", function(handle) {
-                return $pane.setHandleSize(handle);
-              });
+              $scope.$watch('handle', function(handle) {
+                return $pane.setHandleSize(handle)
+              })
 
               $scope.$watch($attrs.paneHandleObj, (function(handle) {
                 if (handle) {
-                  return $pane.setHandleSize(handle);
+                  return $pane.setHandleSize(handle)
                 }
-              }), true);
+              }), true)
 
-              $pane.$directiveScope.$on("fa-pane-attach", function(e, child) {
+              $pane.$directiveScope.$on('fa-pane-attach', function(e, child) {
                 if (child !== $pane) {
 
-                 e.stopPropagation();
-                  return $pane.addChild(child);
+                  e.stopPropagation()
+                  return $pane.addChild(child)
                 }
-              });
+              })
 
-              $pane.$directiveScope.$on("fa-pane-detach", function(e, child) {
+              $pane.$directiveScope.$on('fa-pane-detach', function(e, child) {
                 if (child !== $pane) {
-                  e.stopPropagation();
-                  return $pane.removeChild(child);
+                  e.stopPropagation()
+                  return $pane.removeChild(child)
                 }
-              });
+              })
 
-              $window.addEventListener("resize", function(e) {
-                e.stopPropagation();
-                return $pane.$scheduleReflow();
-              });
+              $window.addEventListener('resize', function(e) {
+                e.stopPropagation()
+                return $pane.$scheduleReflow()
+              })
 
-              $pane.$directiveScope.$on("$stateChangeSuccess", function() {
-                return $pane.$scheduleReflow();
-              });
+              $pane.$directiveScope.$on('$stateChangeSuccess', function() {
+                return $pane.$scheduleReflow()
+              })
 
-              $pane.$directiveScope.$emit("fa-pane-attach", $pane);
+              $pane.$directiveScope.$emit('fa-pane-attach', $pane)
 
-              return $pane.$directiveScope.$on("$destroy", function() {
-                return $pane.$directiveScope.$emit("fa-pane-detach", $pane);
-              });
-            });
-          };
+              return $pane.$directiveScope.$on('$destroy', function() {
+                return $pane.$directiveScope.$emit('fa-pane-detach', $pane)
+              })
+            })
+          }
         }
-      };
+      }
     }
-  ]);
+  ])
 
-  module.directive("faPaneToggle", [
-    "paneManager", function(paneManager) {
+  module.directive('faPaneToggle', [
+    'paneManager', function(paneManager) {
       return {
         link: function($scope, $el, $attrs) {
-          return $attrs.$observe("faPaneToggle", function(paneId) {});
+          return $attrs.$observe('faPaneToggle', function(paneId) {
+          })
         }
-      };
+      }
     }
-  ]);
+  ])
 
-  module.directive("faPaneResizer", [
-    "$window", function($window) {
+  module.directive('faPaneResizer', [
+    '$window', function($window) {
 
       var throttle = function(delay, fn) {
-        var throttled = false;
+        var throttled = false
 
         return function() {
           if (throttled) {
-            return;
+            return
           }
-          throttled = true;
+          throttled = true
 
           setTimeout(function() {
-            return throttled = false;
-          }, delay);
+            return throttled = false
+          }, delay)
 
-          return fn.call.apply(fn, [this].concat([].slice.call(arguments)));
-        };
-      };
+          return fn.call.apply(fn, [this].concat([].slice.call(arguments)))
+        }
+      }
 
       return {
-        restrict: "A",
+        restrict: 'A',
         //require: "^faPane",
         link: function($scope, $element, $attrs, $pane) {
           // return unless $pane
-          $pane || ($pane = $scope.$pane);
+          $pane || ($pane = $scope.$pane)
 
-          var el = $element[0];
+          var el = $element[0]
 
-          var clickRadius = 5;
-          var clickTime = 300;
+          var clickRadius = 5
+          var clickTime = 300
 
           $scope.$watch((function() {
-            return $pane.getOrientation();
+            return $pane.getOrientation()
           }), function(orientation) {
-            $element.removeClass("vertical");
-            $element.removeClass("horizontal");
+            $element.removeClass('vertical')
+            $element.removeClass('horizontal')
 
             switch (orientation) {
-              case "vertical":
-                return $element.addClass("vertical");
-              case "horizontal":
-                return $element.addClass("horizontal");
+              case 'vertical':
+                return $element.addClass('vertical')
+              case 'horizontal':
+                return $element.addClass('horizontal')
             }
-          });
+          })
 
-          return el.addEventListener("mousedown", function(e) {
-            if (e.button !== 0) {
-              return;
-            }
+          var handleResize
+          handleResize = function(e) {
+            const typeEvent = e.toString()
 
-            var anchor = $pane.anchor;
-            var coord;
-            if (anchor === "north" || anchor === "south") {
-              coord = "screenY";
-            } else if (anchor === "west" || anchor === "east") {
-              coord = "screenX";
+            if (typeEvent === '[object MouseEvent]' && e.button !== 0) {
+              return
             }
 
-            var scale;
-            if (anchor === "north" || anchor === "west") {
-              scale = 1;
-            } else if (anchor === "south" || anchor === "east") {
-              scale = -1;
+            if (typeEvent === '[object TouchEvent]' && e.touches.length !== 1) {
+              return
+            }
+
+            var anchor = $pane.anchor
+            var coord
+            if (anchor === 'north' || anchor === 'south') {
+              coord = 'screenY'
+            }
+            else if (anchor === 'west' || anchor === 'east') {
+              coord = 'screenX'
+            }
+
+            var scale
+            if (anchor === 'north' || anchor === 'west') {
+              scale = 1
+            }
+            else if (anchor === 'south' || anchor === 'east') {
+              scale = -1
             }
 
             var startPos = {
-              x: e.screenX,
-              y: e.screenY
-            };
-            var startCoord = e[coord];
-            var startSize = $pane.size;
-            var startTime = Date.now();
+              x: typeEvent === '[object MouseEvent]' ? e.screenX : e.touches[0].screenX,
+              y: typeEvent === '[object MouseEvent]' ? e.screenY : e.touches[0].screenY
+            }
+            var startCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.touches[0][coord]
+            var startSize = $pane.size
+            var startTime = Date.now()
 
             //pane.onHandleDown();
 
             // Not sure if this really adds value, but added for compatibility
-            el.unselectable = "on";
+            el.unselectable = 'on'
             el.onselectstart = function() {
-              return false;
-            };
-            el.style.userSelect = el.style.MozUserSelect = "none";
+              return false
+            }
+            el.style.userSelect = el.style.MozUserSelect = 'none'
 
             // Null out the event to re-use e and prevent memory leaks
             //e.setCapture();
-            e.preventDefault();
-            e.defaultPrevented = true;
-            e = null;
+            e.preventDefault()
+            e.defaultPrevented = true
+            e = null
 
             var handleMouseMove = function(e) {
-              faDragged = true; // Fix for dragging on toggle
+              faDragged = true // Fix for dragging on toggle
 
-              $pane.$onStartResize();
+              $pane.$onStartResize()
 
               // Inside Angular's digest, determine the ideal size of the element
               // according to movements then determine if those movements have been
               // constrained by boundaries, other panes or min/max clauses
               $scope.$apply(function() {
-                var targetSize = startSize + scale * (e[coord] - startCoord);
+                var currentCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.touches[0][coord]
+                var targetSize = startSize + scale * (currentCoord - startCoord)
 
-                return $pane.resize(targetSize);
-              });
+                return $pane.resize(targetSize)
+              })
 
               // Null out the event in case of memory leaks
               //e.setCapture();
-              e.preventDefault();
-              e.defaultPrevented = true;
-              return e = null;
-            };
+              e.preventDefault()
+              e.defaultPrevented = true
+              return e = null
+            }
 
-            var handleMouseUp;
+            var handleMouseUp
             handleMouseUp = function(e) {
               var displacementSq = Math.pow(e.screenX - startPos.x, 2) +
-                                   Math.pow(e.screenY - startPos.y, 2);
-              var timeElapsed = Date.now() - startTime;
+                Math.pow(e.screenY - startPos.y, 2)
+              var timeElapsed = Date.now() - startTime
 
-              $window.removeEventListener("mousemove", handleMouseMoveThrottled, true);
-              $window.removeEventListener("mouseup", handleMouseUp, true);
+              removeListenerMulti($window, 'mousemove touchmove', handleMouseMoveThrottled, true)
+              removeListenerMulti($window, 'mouseup touchend', handleMouseUp, true)
 
               var cleanup = function() {
-                $pane.$onStopResize();
+                $pane.$onStopResize()
 
                 // Null out the event in case of memory leaks
                 //e.releaseCapture();
-                e.preventDefault();
-                e.defaultPrevented = true;
-                return e = null;
-              };
-
+                e.preventDefault()
+                e.defaultPrevented = true
+                return e = null
+              }
               if (displacementSq <= Math.pow(clickRadius, 2) && timeElapsed <= clickTime) {
-                cleanup();
-                return;
+                cleanup()
+                return
               }
 
               // In case the mouse is released at the end of a throttle period
-              handleMouseMove(e);
+              handleMouseMove(e)
 
-              return cleanup();
-            };
+              return cleanup()
+            }
 
             // Prevent the reflow logic from happening too often
-            var handleMouseMoveThrottled = throttle(10, handleMouseMove);
+            var handleMouseMoveThrottled = throttle(10, handleMouseMove)
 
-            $window.addEventListener("mouseup", handleMouseUp, true);
-            return $window.addEventListener("mousemove", handleMouseMoveThrottled, true);
-          });
+            addListenerMulti($window, 'mouseup touchend', handleMouseUp, true)
+            return addListenerMulti($window, 'mousemove touchmove', handleMouseMoveThrottled, true)
+          }
+
+          var addListenerMulti
+          addListenerMulti = function(el, s, fn, uc) {
+            s.split(' ').forEach(e => el.addEventListener(e, fn, uc))
+          }
+
+          var removeListenerMulti
+          removeListenerMulti = function(el, s, fn, uc) {
+            s.split(' ').forEach(e => el.removeEventListener(e, fn, uc))
+          }
+
+          return addListenerMulti(el, 'mousedown touchstart', handleResize, false)
         }
-      };
+      }
     }
-  ]);
+  ])
 
-}).call(this);
+}).call(this)
