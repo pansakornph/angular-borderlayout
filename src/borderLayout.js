@@ -749,7 +749,7 @@
               return
             }
 
-            if (typeEvent === '[object TouchEvent]' && e.touches.length !== 1) {
+            if (typeEvent === '[object TouchEvent]' && e.changedTouches.length !== 1) {
               return
             }
 
@@ -771,10 +771,10 @@
             }
 
             var startPos = {
-              x: typeEvent === '[object MouseEvent]' ? e.screenX : e.touches[0].screenX,
-              y: typeEvent === '[object MouseEvent]' ? e.screenY : e.touches[0].screenY
+              x: typeEvent === '[object MouseEvent]' ? e.screenX : e.changedTouches[0].screenX,
+              y: typeEvent === '[object MouseEvent]' ? e.screenY : e.changedTouches[0].screenY
             }
-            var startCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.touches[0][coord]
+            var startCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.changedTouches[0][coord]
             var startSize = $pane.size
             var startTime = Date.now()
 
@@ -802,7 +802,7 @@
               // according to movements then determine if those movements have been
               // constrained by boundaries, other panes or min/max clauses
               $scope.$apply(function() {
-                var currentCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.touches[0][coord]
+                var currentCoord = typeEvent === '[object MouseEvent]' ? e[coord] : e.changedTouches[0][coord]
                 var targetSize = startSize + scale * (currentCoord - startCoord)
 
                 return $pane.resize(targetSize)
@@ -817,7 +817,8 @@
 
             var handleMouseUp
             handleMouseUp = function(e) {
-              var displacementSq = Math.pow(e.screenX - startPos.x, 2) +
+              var screenX = typeEvent === '[object MouseEvent]' ? e.screenX : e.changedTouches[0].screenX
+              var displacementSq = Math.pow(screenX - startPos.x, 2) +
                 Math.pow(e.screenY - startPos.y, 2)
               var timeElapsed = Date.now() - startTime
 
@@ -853,12 +854,18 @@
 
           var addListenerMulti
           addListenerMulti = function(el, s, fn, uc) {
-            s.split(' ').forEach(e => el.addEventListener(e, fn, uc))
+            s.split(' ').forEach(e => {
+              uc = e.toString().indexOf('touch') !== -1? { passive: false }:uc;
+              return el.addEventListener(e, fn, uc);
+            })
           }
 
           var removeListenerMulti
           removeListenerMulti = function(el, s, fn, uc) {
-            s.split(' ').forEach(e => el.removeEventListener(e, fn, uc))
+            s.split(' ').forEach(e => {
+              uc = e.toString().indexOf('touch') !== -1? { passive: false }:uc;
+              return el.removeEventListener(e, fn, uc);
+            })
           }
 
           return addListenerMulti(el, 'mousedown touchstart', handleResize, false)
